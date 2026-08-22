@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Learning Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h1 { color: #333; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .topic-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        .topic-card h3 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .topic-card p {
+            color: #666;
+            font-size: 14px;
+        }
+        .topic-card .questions-count {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .question-container {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        .question-container.active {
+            display: block;
+        }
+        .question-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .question-text {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .answer-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .answer-option:hover {
+            background: #e9ecef;
+        }
+        .answer-option.selected {
+            border-color: #667eea;
+            background: #e7e7ff;
+        }
+        .answer-option input[type="radio"] {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .answer-option label {
+            cursor: pointer;
+            flex: 1;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #38a169;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        .btn-danger {
+            background: #fc8181;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #f56565;
+        }
+        .back-btn {
+            background: #718096;
+            color: white;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background: #4a5568;
+        }
+        .statistics {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        .stat-item {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .stat-label {
+            color: #666;
+            font-size: 12px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-value.green { color: #48bb78; }
+        .stat-value.red { color: #fc8181; }
+        .stat-value.blue { color: #667eea; }
+        .result-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .result-badge.correct {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .result-badge.wrong {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .error {
+            color: #fc8181;
+            padding: 10px;
+            background: #fed7d7;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .progress-bar-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+        .progress-bar-outer {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+        .admin-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .admin-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Quiz Platform</h1>
+                <p class="subtitle">Выберите тему для прохождения теста</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a href="/statistics" class="btn btn-primary" style="padding: 8px 16px; font-size: 14px;">📊 Статистика</a>
+                <a href="/admin" class="admin-link">⚙Админка</a>
+            </div>
+        </div>
+
+        <div id="topicsList" class="topics-grid"></div>
+
+        <div id="questionContainer" class="question-container">
+            <button class="btn back-btn" onclick="backToTopics()">← Назад к темам</button>
+            <div id="questionsList"></div>
+            <div id="statisticsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/v1';
+        let currentTopicId = null;
+        let currentUserId = null;
+        let answers = {};
+
+        // Загрузка тем
+        async function loadTopics() {
+            try {
+                const response = await fetch(`${API_URL}/topics/`);
+                if (!response.ok) throw new Error('Failed to load topics');
+                const topics = await response.json();
+                displayTopics(topics);
+            } catch (error) {
+                console.error('Error loading topics:', error);
+                document.getElementById('topicsList').innerHTML = '<div class="error">Ошибка загрузки тем</div>';
+            }
+        }
+
+        // Отображение тем
+        function displayTopics(topics) {
+            const container = document.getElementById('topicsList');
+            if (topics.length === 0) {
+                container.innerHTML = '<p style="color: #666;">Пока нет доступных тем. Обратитесь к администратору.</p>';
+                return;
+            }
+
+            container.innerHTML = topics.map(topic => `
+                <div class="topic-card" onclick="loadQuestions(${topic.id})">
+                    <h3>${topic.name}</h3>
+                    <p>${topic.description || 'Нет описания'}</p>
+                    <span class="questions-count">${topic.questions_count || 0} вопросов</span>
+                </div>
+            `).join('');
+        }
+
+        // Загрузка вопросов по теме
+        async function loadQuestions(topicId) {
+            currentTopicId = topicId;
+            try {
+                const response = await fetch(`${API_URL}/questions/topic/${topicId}`);
+                if (!response.ok) throw new Error('Failed to load questions');
+                const questions = await response.json();
+                displayQuestions(questions);
+                document.getElementById('questionContainer').classList.add('active');
+                document.getElementById('topicsList').style.display = 'none';
+                document.getElementById('statisticsContainer').innerHTML = '';
+                answers = {};
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                alert('Ошибка загрузки вопросов');
+            }
+        }
+
+        // Отображение вопросов
+        function displayQuestions(questions) {
+            const container = document.getElementById('questionsList');
+            if (questions.length === 0) {
+                container.innerHTML = '<p style="color: #666;">В этой теме пока нет вопросов</p>';
+                return;
+            }
+
+            container.innerHTML = questions.map((q, index) => `
+                <div class="question-item" id="question-${q.id}">
+                    <div class="question-text">
+                        ${index + 1}. ${q.text}
+                        ${q.image_url ? `<br><img src="${q.image_url}" alt="Question image" style="max-width: 100%; max-height: 200px; margin-top: 10px;">` : ''}
+                    </div>
+                    <div class="answers">
+                        ${q.answers.map(a => `
+                            <div class="answer-option" onclick="selectAnswer(${q.id}, ${a.id})">
+                                <input type="radio" name="question_${q.id}" value="${a.id}" id="answer_${a.id}">
+                                <label for="answer_${a.id}">${a.text}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="btn btn-primary" onclick="submitAnswer(${q.id})" style="margin-top: 15px;">
+                        Ответить
+                    </button>
+                    <div id="result-${q.id}" style="margin-top: 10px;"></div>
+                </div>
+            `).join('');
+
+            updateProgress();
+        }
+
+        // Выбор ответа
+        function selectAnswer(questionId, answerId) {
+            const questionEl = document.getElementById(`question-${questionId}`);
+            questionEl.querySelectorAll('.answer-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+
+            const answerEl = questionEl.querySelector(`.answer-option input[value="${answerId}"]`).parentElement;
+            answerEl.classList.add('selected');
+
+            document.getElementById(`answer_${answerId}`).checked = true;
+            answers[questionId] = answerId;
+            updateProgress();
+            saveProgress();
+        }
+
+        // Отправка ответа
+        async function submitAnswer(questionId) {
+            const answerId = answers[questionId];
+            if (!answerId) {
+                alert('Пожалуйста, выберите вариант ответа');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/statistics/submit-answer`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question_id: questionId,
+                        selected_answer_id: answerId
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to submit answer');
+                const result = await response.json();
+
+                if (!currentUserId) {
+                    currentUserId = result.user_id;
+                }
+
+                const resultDiv = document.getElementById(`result-${questionId}`);
+                const isCorrect = result.is_correct;
+                resultDiv.innerHTML = `
+                    <span class="result-badge ${isCorrect ? 'correct' : 'wrong'}">
+                        ${isCorrect ? '✅ Правильно!' : '❌ Неправильно!'}
+                    </span>
+                `;
+
+                const questionEl = document.getElementById(`question-${questionId}`);
+                questionEl.querySelectorAll('.answer-option').forEach(el => {
+                    el.style.cursor = 'default';
+                    el.style.opacity = '0.6';
+                });
+                questionEl.querySelectorAll('input[type="radio"]').forEach(el => {
+                    el.disabled = true;
+                });
+                const btn = questionEl.querySelector('.btn-primary');
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.textContent = 'Отвечено';
+
+                if (currentUserId) {
+                    await loadStatistics(currentUserId);
+                }
+                saveProgress();
+            } catch (error) {
+                console.error('Error submitting answer:', error);
+                alert('Ошибка при отправке ответа');
+            }
+        }
+
+        // Загрузка статистики
+        async function loadStatistics(userId) {
+            try {
+                const response = await fetch(`${API_URL}/statistics/${userId}`);
+                if (!response.ok) throw new Error('Failed to load statistics');
+                const stats = await response.json();
+                displayStatistics(stats);
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        // Отображение статистики
+        function displayStatistics(stats) {
+            const container = document.getElementById('statisticsContainer');
+            const total = stats.total_answered || 0;
+            const correct = stats.correct_count || 0;
+            const wrong = stats.wrong_count || 0;
+            const rate = stats.success_rate || 0;
+
+            if (total === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `
+                <h3 style="margin-top: 20px;">📊 Ваша статистика</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin: 15px 0;">
+                    <div class="stat-item">
+                        <div class="stat-label">Всего ответов</div>
+                        <div class="stat-value blue">${total}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Правильно</div>
+                        <div class="stat-value green">${correct}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Неправильно</div>
+                        <div class="stat-value red">${wrong}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Успеваемость</div>
+                        <div class="stat-value ${rate >= 70 ? 'green' : rate >= 50 ? 'blue' : 'red'}">${rate.toFixed(1)}%</div>
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <a href="/statistics" class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;">Подробная статистика →</a>
+                </div>
+            `;
+        }
+
+        // Прогресс
+        function updateProgress() {
+            const total = document.querySelectorAll('.question-item').length;
+            const answered = Object.keys(answers).length;
+
+            if (total === 0) return;
+
+            let progressContainer = document.getElementById('progressBar');
+            if (!progressContainer) {
+                progressContainer = document.createElement('div');
+                progressContainer.id = 'progressBar';
+                progressContainer.className = 'progress-bar-container';
+                const list = document.getElementById('questionsList');
+                list.parentNode.insertBefore(progressContainer, list);
+            }
+
+            const percent = Math.round((answered / total) * 100);
+            progressContainer.innerHTML = `
+                <div class="progress-text">
+                    <span>Прогресс: ${answered}/${total}</span>
+                    <span>${percent}%</span>
+                </div>
+                <div class="progress-bar-outer">
+                    <div class="progress-bar-inner" style="width: ${percent}%;"></div>
+                </div>
+            `;
+        }
+
+        // Сохранение прогресса
+        function saveProgress() {
+            if (currentUserId) {
+                localStorage.setItem('quiz_progress', JSON.stringify({
+                    userId: currentUserId,
+                    answers: answers
+                }));
+            }
+        }
+
+        // Возврат к списку тем
+        function backToTopics() {
+            document.getElementById('questionContainer').classList.remove('active');
+            document.getElementById('topicsList').style.display = 'grid';
+            currentTopicId = null;
+        }
+
+        // Загрузка при старте
+        loadTopics();
+    </script>
+</body>
+</html>
