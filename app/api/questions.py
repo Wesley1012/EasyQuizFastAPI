@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload  # ← Добавляем
+from sqlalchemy.orm import selectinload
 from typing import List
 
 from app.core.auth import verify_admin

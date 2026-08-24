@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from sqlalchemy.orm import selectinload  # ← Добавляем
+from sqlalchemy.orm import selectinload
 from typing import List
 
 from app.core.database import get_db
 from app.models.topic import Topic
-from app.models.question import Question  # ← Добавляем
+from app.models.question import Question
 from app.schemas.topic import TopicResponse, TopicCreate, TopicUpdate
 
 router = APIRouter(prefix="/topics", tags=["topics"])

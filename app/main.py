@@ -5,7 +5,8 @@ from pathlib import Path
 from contextlib import asynccontextmanager
 
 from app.core.database import engine, Base
-from app.api.v1 import topics, questions, statistics
+from app.api import questions, statistics, topics
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
